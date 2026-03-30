@@ -8,30 +8,34 @@ from datetime import datetime
 from dateutil import tz
 import mh_z19
 
-# Read current date and CO2
-date = datetime.now(tz.tzlocal()).isoformat()
-co2 = int(mh_z19.read()['co2'])
-print(f"Date: {date}")
-print(f"CO2: {co2} ppm")
+def main():
+    # Read current date and CO2
+    date = datetime.now(tz.tzlocal()).isoformat()
+    co2 = int(mh_z19.read()['co2'])
+    print(f"Date: {date}")
+    print(f"CO2: {co2} ppm")
 
-# Read config file
-config = configparser.ConfigParser()
-config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
+    # Read config file
+    config = configparser.ConfigParser()
+    config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
-# Write current CO2 level to file
-try:
-    co2_filepath = config['co2']['co2_filepath']
-    with open(co2_filepath, 'w') as writer:
-        writer.write(str(co2))
-        print(f"CO2 level written to {co2_filepath}")
-except Exception as e:
-    print(e)
+    # Write current CO2 level to file
+    try:
+        co2_filepath = config['co2']['co2_filepath']
+        with open(co2_filepath, 'w') as writer:
+            writer.write(str(co2))
+            print(f"CO2 level written to {co2_filepath}")
+    except Exception as e:
+        print(e)
 
-# Send current CO2 level to API
-try:
-    url = config['co2']['api_url']
-    data = { 'fields': [date, co2] }
-    requests.post(url, data=json.dumps(data), headers={ 'Content-Type': 'application/json' })
-    print(f"CO2 level sent to API {url}")
-except Exception as e:
-    print(e)
+    # Send current CO2 level to API
+    try:
+        url = config['co2']['api_url']
+        data = { 'fields': [date, co2] }
+        requests.post(url, data=json.dumps(data), headers={ 'Content-Type': 'application/json' })
+        print(f"CO2 level sent to API {url}")
+    except Exception as e:
+        print(e)
+
+if __name__ == '__main__':
+    main()
