@@ -10,7 +10,7 @@ import mh_z19
 
 def main():
     # Read current date and CO2
-    date = datetime.now(tz.tzlocal()).isoformat()
+    date = datetime.now(tz.tzlocal())
     co2 = int(mh_z19.read()['co2'])
     print(f"Date: {date}")
     print(f"CO2: {co2} ppm")
@@ -29,13 +29,17 @@ def main():
         print(e)
 
     # Send current CO2 level to API
-    try:
-        url = config['co2']['api_url']
-        data = { 'fields': [date, co2] }
-        requests.post(url, data=json.dumps(data), headers={ 'Content-Type': 'application/json' })
-        print(f"CO2 level sent to API {url}")
-    except Exception as e:
-        print(e)
+    api_send_interval_minutes = int(config['co2']['api_send_interval_minutes'])
+    if date.minute % api_send_interval_minutes == 0:
+        try:
+            url = config['co2']['api_url']
+            data = { 'fields': [date.isoformat(), co2] }
+            requests.post(url, data=json.dumps(data), headers={ 'Content-Type': 'application/json' })
+            print(f"CO2 level sent to API {url}")
+        except Exception as e:
+            print(e)
+    else:
+        print(f"Nothing sent to API (minute {date.minute} with interval {api_send_interval_minutes})")
 
 if __name__ == '__main__':
     main()
